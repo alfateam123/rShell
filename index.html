@@ -1,0 +1,62 @@
+<html>
+<head>
+<title>rShell</title>
+<style type="text/css">
+body {
+	background: black;
+	color: white;
+	font-family: Monospace;
+	font-size: 12px;
+}
+
+input {
+	background: black;
+	color: white;
+	font-family: Monospace;
+	font-size: 12px;
+	border: 0;
+}
+</style>
+<script src="jquery-1.5.min.js" type="text/javascript"></script>
+<script src="rshell.js" type="text/javascript"></script>
+<script type="text/javascript">
+window.onload = function () {
+	var rshellConfig = {
+		ps1:         "<strong><span style='color:lightgreen;'>[</span><span style='color:cyan;'>{PATH}</span><span style='color:lightgreen'>]</span>&nbsp;<span style='color:#374eef'>></span></strong>",
+		placein:     $("#r_form"),
+		defaultpath: "/home/guest/",
+		defaultuser: "guest",
+		mcharlength: null, // Default
+		initmsg:     "Welcome to rShell."
+	};
+	rshell = new rShell (rshellConfig);
+	rshell.hookCommand ("cd", function (c, p, o) {
+		var _tmp = (p.length == 1 ? p[0].split ("") : "");
+		if (p.length != 1)
+			p[0] = o.conf.defaultpath;
+		else if (p[0] == "..")
+			p[0] = o.path.replace (new RegExp ("([a-zA-Z0-9!\"$%&\\(\\)=\\?^|\.:,;-_<>\\[\\]\\{\\}\\*\\+@]+)/$"), "");
+		else if (p[0] == ".." && o.path == "/")
+			p[0] = "/";
+		else if (p[0] == ".")
+			p[0] = o.path;
+		else if (_tmp[0] != "/")
+			p[0] = o.path + p[0] + "/";
+		else if (_tmp[(_tmp.length - 1)] != "/")
+			p[0] += "/";
+		p[0] = o.fixStr (p[0]);
+		o.chpath (p[0]);
+		o.writeResult ("", 1);
+	});
+	rshell.hookCommand ("clear", function (c,p,o) {
+		$("#r_cmdspace").html ("");
+	});
+	rshell.printShell();
+}
+</script>
+</head>
+<body>
+<form action='#' onsubmit='if(rshell){rshell.parseCommand();};return false;' id='r_form'>
+</form>
+</body>
+</html>
